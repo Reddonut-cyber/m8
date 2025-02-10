@@ -1,7 +1,18 @@
 import random
 
-def generate_system(n):
+def generate_random_system(n):
     A  = [[random.randint(1, 10) for _ in range(n)] for _ in range(n)]
+    x_known = [i + 1 for i in range(n)]
+    b = []
+    for i in range(n):
+        s = 0
+        for j in range(n):
+            s += A[i][j] * x_known[j]
+        b.append(s)
+    return A, b, x_known
+
+def generate_hilbert_system(n):
+    A = [[1/(i + j + 1) for j in range(n)] for i in range(n)]
     x_known = [i + 1 for i in range(n)]
     b = []
     for i in range(n):
@@ -50,13 +61,51 @@ def backward_substitution(A, b):
         x[i] = (b[i] - sum_ax) / A[i][i]
     return x
 
+def compute_residue(A, b, x):
+    """
+    Compute the residue vector r = Ax - b.
+    """
+    n = len(A)
+    residue = []
+    for i in range(n):
+        s = 0
+        for j in range(n):
+            s += A[i][j] * x[j]
+        residue.append(s - b[i])
+    return residue
 
-if __name__ == "__main__":
-    n = random.randint(1, 10)
-    A, b, _ = generate_system(n)
+def test_system(system_type, n):
+    print(f"Testing {system_type} system of size n = {n}")
+    
+    if system_type == "random":
+        A, b, x_known = generate_random_system(n)
+    elif system_type == "hilbert":
+        A, b, x_known = generate_hilbert_system(n)
+    else:
+        raise ValueError("Unknown system type")
+    
+    print("Known solution x:", x_known)
+    print("Initial augmented matrix [A|b]:")
+    print_augmented_matrix(A, b)
+    
     A_copy = [row[:] for row in A]
     b_copy = b[:]
     A_upper, b_upper = forward_elimination(A_copy, b_copy)
-    x_computed = backward_substitution(A_upper, b_upper)
-    print("x =", x_computed)
     
+    x_computed = backward_substitution(A_upper, b_upper)
+    print("Computed solution x:", x_computed)
+    
+    residue = compute_residue(A, b, x_computed)
+    print("Residue vector (Ax - b):", residue)
+    max_error = max(abs(r) for r in residue)
+    print("Maximum residue error:", max_error)
+    print("=" * 60, "\n")
+
+def main():
+    sizes = [5, 10, 20]
+    for n in sizes:
+        test_system("random", n)
+        test_system("hilbert", n)
+
+if __name__ == "__main__":
+    main()
