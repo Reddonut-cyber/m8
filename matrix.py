@@ -9,7 +9,7 @@ def generate_random_system(n):
         for j in range(n):
             s += A[i][j] * x_known[j]
         b.append(s)
-    return A, b, x_known
+    return A, b, x_known 
 
 def generate_hilbert_system(n):
     A = [[1/(i + j + 1) for j in range(n)] for i in range(n)]
