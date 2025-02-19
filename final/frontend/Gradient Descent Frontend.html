@@ -1,0 +1,84 @@
+import React, { useState, useEffect } from "react";
+import { Line } from "react-chartjs-2";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+
+export default function GradientDescentApp() {
+  const [func, setFunc] = useState("x**2 - 4*x + 4");
+  const [startX, setStartX] = useState(5);
+  const [learningRate, setLearningRate] = useState(0.1);
+  const [iterations, setIterations] = useState(50);
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [history, setHistory] = useState([]);
+
+  useEffect(() => {
+    fetch("http://127.0.0.1:5000/function_history")
+      .then((res) => res.json())
+      .then((data) => setHistory(data.history));
+  }, []);
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    const response = await fetch("http://127.0.0.1:5000/gradient_descent", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        function: func,
+        start_x: parseFloat(startX),
+        learning_rate: parseFloat(learningRate),
+        max_iters: parseInt(iterations),
+      }),
+    });
+    const result = await response.json();
+    setData(result);
+    setLoading(false);
+    
+    fetch("http://127.0.0.1:5000/function_history")
+      .then((res) => res.json())
+      .then((data) => setHistory(data.history));
+  };
+
+  return (
+    <div className="p-6">
+      <Card>
+        <CardContent>
+          <h2 className="text-xl font-bold">Gradient Descent Visualizer</h2>
+          <div className="flex flex-col gap-2 my-4">
+            <Input placeholder="Function" value={func} onChange={(e) => setFunc(e.target.value)} />
+            <Input placeholder="Start X" type="number" value={startX} onChange={(e) => setStartX(e.target.value)} />
+            <Input placeholder="Learning Rate" type="number" value={learningRate} onChange={(e) => setLearningRate(e.target.value)} />
+            <Input placeholder="Iterations" type="number" value={iterations} onChange={(e) => setIterations(e.target.value)} />
+            <Button onClick={handleSubmit} disabled={loading}>
+              {loading ? "Calculating..." : "Run Gradient Descent"}
+            </Button>
+          </div>
+          {data && (
+            <Line
+              data={{
+                labels: data.x_values.map((_, i) => i),
+                datasets: [
+                  {
+                    label: "Function Value",
+                    data: data.y_values,
+                    borderColor: "red",
+                    fill: false,
+                  },
+                ],
+              }}
+            />
+          )}
+          <h3 className="text-lg font-bold mt-4">Function History</h3>
+          <ul>
+            {history.map((item, index) => (
+              <li key={index}>{item.function}</li>
+            ))}
+          </ul>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
