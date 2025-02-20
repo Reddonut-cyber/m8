@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gradient Descent Visualizer</title>
+</head>
+<body>
+    <h1>Gradient Descent Visualizer</h1>
+    <label for="functionInput">Function (e.g., x**2 - 2*x + 1):</label>
+    <input type="text" id="functionInput" value="x**2 - 2*x + 1"><br><br>
+
+    <label for="startingPoint">Starting Point:</label>
+    <input type="number" id="startingPoint" value="3"><br><br>
+
+    <label for="learningRate">Learning Rate:</label>
+    <input type="number" id="learningRate" value="0.1"><br><br>
+
+    <label for="iterations">Iterations:</label>
+    <input type="number" id="iterations" value="50"><br><br>
+
+    <button id="calculateBtn">Calculate</button><br><br>
+
+    <div id="plotContainer"></div>
+    <p id = "minPoint"></p>
+
+    <script src="script.js"></script>
+</body>
+</html>
