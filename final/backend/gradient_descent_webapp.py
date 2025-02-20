@@ -1,10 +1,11 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 import numpy as np
 import sympy as sp
 from flask_cors import CORS
 import json
+import os
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="../template/build", static_url_path="/")
 CORS(app)
 
 # Load history from file
@@ -23,9 +24,8 @@ def save_history(history):
 
 history_data = load_history()
 
-# Define function and its derivative
+# Gradient Descent Algorithm
 x = sp.Symbol('x')
-define_function = x**2 - 4*x + 4  # Default function
 
 def compute_gradient(f_expr):
     df_dx = sp.diff(f_expr, x)
@@ -34,7 +34,6 @@ def compute_gradient(f_expr):
 def compute_function(f_expr):
     return sp.lambdify(x, f_expr, 'numpy')
 
-# Gradient Descent Algorithm
 def gradient_descent(f_prime, f, start_x, learning_rate=0.1, max_iters=50, tolerance=1e-6):
     x_values = [start_x]
     y_values = [f(start_x)]
@@ -62,15 +61,12 @@ def run_gradient_descent():
     learning_rate = float(data.get('learning_rate', 0.1))
     max_iters = int(data.get('max_iters', 50))
     
-    # Parse function
     f_expr = sp.sympify(expr_str)
     f = compute_function(f_expr)
     df = compute_gradient(f_expr)
     
-    # Run Gradient Descent
     x_vals, y_vals = gradient_descent(df, f, start_x, learning_rate, max_iters)
     
-    # Save to history
     history_entry = {
         "function": expr_str,
         "start_x": start_x,
@@ -87,6 +83,10 @@ def run_gradient_descent():
 @app.route('/history', methods=['GET'])
 def get_history():
     return jsonify(history_data)
+
+@app.route("/")
+def serve_react():
+    return send_from_directory(app.static_folder, "index.html")
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
